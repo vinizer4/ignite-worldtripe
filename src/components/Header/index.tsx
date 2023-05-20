@@ -1,39 +1,39 @@
-import { Flex, Img, Link as ChakraLink } from "@chakra-ui/react";
-import Link from "next/link";
-import { useRouter } from "next/router";
+import { Flex, Grid, GridItem, Icon, Image } from "@chakra-ui/react";
+import { useRouter } from "next/dist/client/router";
+import { RiArrowLeftSLine } from 'react-icons/ri';
+import Link from 'next/link';
 
-import { BaseContainer } from "../BaseContainer";
-
-import * as styles from './styles'
-
-export function Header() {
-  let buttonToBack = false
-
+export default function Header() {
   const { asPath } = useRouter()
-
-  if(asPath !== "/") buttonToBack = true
+  const notHomePage = asPath !== '/'
 
   return (
-    <Flex {...styles.Header} >
-      <BaseContainer h="100%">
-        <Flex {...styles.HeaderContent} >
-
-          { buttonToBack && (
-            <Link href="/" passHref>
-              <ChakraLink as="a" position="absolute" left={0}>
-                <Img src="/assets/arrow-back.svg" alt="Voltar" />
-              </ChakraLink>
-            </Link>
-          ) }
-
-          <Link href="/" passHref>
-            <ChakraLink as="a">
-              <Img src="/assets/logo.svg" alt="World Tripe" p="2" />
-            </ChakraLink>
+    <Flex bg="white" w="100%" as="header" mx="auto" px="1rem" h={["50px","100px"]} align="center" justify="center">
+      <Grid
+        h="100%"
+        mx="auto"
+        w="100%"
+        maxW="1160px"
+        alignItems="center"
+        templateColumns="repeat(3, 1fr)"
+        justifyContent="center"
+        alignSelf="start"
+      >
+        {notHomePage && (
+          <Link href="/">
+            <a>
+              <Icon as={RiArrowLeftSLine} fontSize={[20,40]} justifySelf="start"/>
+            </a>
           </Link>
-
-        </Flex>
-      </BaseContainer>
+        )}
+          <Image
+            w={["81px","184px"]}
+            src="/logo.svg"
+            alt="Um avição voando sobre o nome da marca world trip"
+            justifySelf="center"
+            gridColumn="2"
+          />
+      </Grid>
     </Flex>
   )
 }

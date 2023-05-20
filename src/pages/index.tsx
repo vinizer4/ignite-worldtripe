@@ -1,127 +1,76 @@
-import { Box, Center, Divider, Flex, Heading, Image, Text, useBreakpointValue } from "@chakra-ui/react";
-
-import { EffectFade, Navigation, Pagination } from "swiper";
-import { Swiper, SwiperSlide } from "swiper/react";
-
-import { BaseContainer } from "../components/BaseContainer";
-import { TravelType } from "../components/TravelType";
-
-import 'swiper/css';
-import "swiper/css/effect-fade";
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
-
-import * as styles from './home.styles'
+import { Flex, Heading } from "@chakra-ui/react";
 import { GetStaticProps } from "next";
-import { SlideItem } from "../components/SlideItem";
-import { api } from "../services/api";
-
-type Continent = {
-  title: string;
-  caption: string;
-  img: string;
-  page: string;
-}
+import Prismic from '@prismicio/client';
+import Head from "next/head";
+import Banner from "../components/Banner";
+import Caracteristicas from "../components/Caracteristicas";
+import Header from "../components/Header";
+import Separador from "../components/Separador";
+import Slider from "../components/Slider";
+import { getPrismicClient } from "../services/prismic";
 
 interface HomeProps {
-  continents: Continent[];
+  continents:{
+    slug: string;
+    title: string;
+    summary: string;
+    image: string;
+  }[]
 }
 
 export default function Home({ continents }: HomeProps) {
-  const hasAirplane = useBreakpointValue({
-    base: false,
-    md: false,
-    lg: true
-  })
-
   return (
-    <Box as="section" pb="8">
-      <Flex {...styles.Banner}>
-        <Image src="/assets/banner.png" alt="Fundo de estrelas" {...styles.BannerBackground} />
-        <BaseContainer zIndex={1} {...styles.BannerContainer}>
-          <Box>
-            <Heading {...styles.BannerHeading}>
-              5 Continentes, <br />
-              infinitas possibilidades.
-            </Heading>
-            <Text {...styles.BannerText}>
-              Chegou a hora de tirar do papel a viagem que você sempre sonhou. 
-            </Text>
-          </Box>
+    <Flex direction="column">
+    <Head>
+      <title>WorldTrip - Home</title>
+          <meta property="og:image" content="/ogimage.png" />
+          <meta property="og:image:secure_url" content="/ogimage.png" />
+          <meta name="twitter:image" content="/ogimage.png" />
+          <meta name="twitter:image:src" content="/ogimage.png" />
+          <meta property="og:title" content="WorldTrip" />
+          <meta name="twitter:title" content="WorldTrip" />
+    </Head>
 
-          { hasAirplane && (
-            <Image src="/assets/airplane.svg" alt="Avião" {...styles.BannerAirplane} />
-          ) }
-        </BaseContainer>
-      </Flex>
+    <Header />
+    <Banner />
+    <Caracteristicas />
+    <Separador />
 
-      <BaseContainer mt="16">
-        <Flex {...styles.Travels}>
-          <TravelType icon="/assets/cocktail.svg" iconAlt="Coquetel">
-            vida noturna
-          </TravelType>
-          <TravelType icon="/assets/surf.svg" iconAlt="Prancha de Surf">
-            praia
-          </TravelType>
-          <TravelType icon="/assets/building.svg" iconAlt="Construção Moderna">
-            moderno
-          </TravelType>
-          <TravelType icon="/assets/museum.svg" iconAlt="Museu">
-            clássico
-        </TravelType>
-          <TravelType icon="/assets/earth.svg" iconAlt="Terra">
-            e mais...
-          </TravelType>
-        </Flex>
-      </BaseContainer>
-
-      <Center>
-        <Divider bg="text.headings.gray" h={0.5} w={90} my="10" />
-      </Center>
-
-      <Center>
-        <Heading as="h2" {...styles.Heading}>
-          Vamos nessa? <br />
-          Então escolha seu continente
-        </Heading>
-      </Center>
-
-      <BaseContainer px={0}>
-        <Box {...styles.SliderBox}>
-          <Swiper
-            effect="fade"
-            style={styles.SliderSwiper}
-            modules={[Navigation, Pagination, EffectFade]}
-            slidesPerView={1}
-            navigation
-            pagination={{ clickable: true }}
-          >
-            { continents.map((continent, i) => (
-              <SwiperSlide key={i}>
-                <SlideItem
-                  altImg={continent.title}
-                  img={continent.img}
-                  href={continent.page}
-                  title={continent.title}
-                  caption={continent.caption}
-                />
-              </SwiperSlide>
-            )) }
-        </Swiper>
-        </Box>
-      </BaseContainer>
-    </Box>
+    <Heading
+      textAlign="center"
+      fontWeight="500"
+      mb={["5","14"]}
+      fontSize={["lg",
+      "3xl",
+      "4xl"]}
+    >
+    Vamos nessa?<br/>Então escolha seu continente
+    </Heading>
+    
+    <Slider continents={continents} />
+  </Flex>
   )
 }
 
-export const getStaticProps: GetStaticProps<HomeProps> = async () => {
-  const response = await api.get<Continent[]>("/continentes")
-  const continents = response.data
+export const getStaticProps: GetStaticProps = async () => {
+  const prismic = getPrismicClient();
+
+  const response = await prismic.query(
+    [Prismic.Predicates.at('document.type', 'continent')]
+  )
+
+  const continents = response.results.map(continent => {
+    return {
+      slug: continent.uid,
+      title: continent.data.title,
+      summary: continent.data.summary,
+      image: continent.data.slider_image.url
+    }
+  })
 
   return {
     props: {
       continents
-    },
-    revalidate: 60 * 1 * 24 // 1 dia
+    }
   }
 }
